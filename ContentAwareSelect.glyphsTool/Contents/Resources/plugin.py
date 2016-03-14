@@ -13,7 +13,7 @@
 
 
 from GlyphsApp.plugins import *
-from TTSolver import TTSolver, DIAGONAL, PROPORTIONAL_TRIPLE
+from TTSolver import TTSolver, DIAGONAL, PROPORTIONAL_TRIPLE, PROPORTIONAL_QUAD
 import sys
 import traceback
 from GlyphsApp import TAG
@@ -63,6 +63,13 @@ class ContentAwareSelect(SelectTool):
 
           bez.lineToPoint_(t.targetNode.position)
           bez.lineToPoint_(t.otherNode1.position)
+          bez.stroke()
+        elif t.options() == PROPORTIONAL_QUAD:
+          NSColor.yellowColor().set()
+          bez = NSBezierPath.bezierPath()
+          bez.setLineWidth_(2.0)
+          bez.moveToPoint_(t.originNode.position)
+          bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position, t.otherNode1.position, t.otherNode2.position)
           bez.stroke()
         elif t.horizontal:
           NSColor.redColor().set()
@@ -115,6 +122,9 @@ class ContentAwareSelect(SelectTool):
         contextMenus.append({'name': "Add horizontal proportion constraint", 'action': self.constrainHProportion})
         contextMenus.append({'name': "Add vertical proportion constraint", 'action': self.constrainVProportion})
 
+      if len(s) == 4:
+        contextMenus.append({'name': "Add horizontal proportion constraint", 'action': self.constrainHProportion4})
+
     # Return list of context menu items
     return contextMenus
 
@@ -123,11 +133,14 @@ class ContentAwareSelect(SelectTool):
     hint.type = TAG
     s = filter(lambda x: type(x) == GSNode, layer.selection)
     s = sorted(s, key=lambda l: l.position.x)
+    print(s)
     hint.originNode, hint.targetNode = s[0], s[1]
     if len(s) > 2:
       hint.otherNode1 = s[2]
+      print("ON1: ", s[2])
     if len(s) > 3:
-      hint.otherNode2 = s[3]
+      hint.setOtherNode2_(s[3]) # Work around glyphs bug
+      print("ON2: ", s[3])
     return hint
 
   def constrainX(self, sender):
@@ -169,6 +182,15 @@ class ContentAwareSelect(SelectTool):
     hint.horizontal = False
     hint.setOptions_(PROPORTIONAL_TRIPLE)
     hint.setName_("vp")
+    layer.hints.append(hint)
+    self._rebuild()
+
+  def constrainHProportion4(self, sender):
+    layer = Glyphs.font.selectedLayers[0]
+    hint = self._makeHint(layer)
+    hint.horizontal = True
+    hint.setOptions_(PROPORTIONAL_QUAD)
+    hint.setName_("hp")
     layer.hints.append(hint)
     self._rebuild()
 

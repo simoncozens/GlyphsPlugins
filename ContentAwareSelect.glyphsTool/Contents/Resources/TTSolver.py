@@ -3,7 +3,12 @@ from GlyphsApp import GSOFFCURVE, TAG
 
 DIAGONAL = 8
 PROPORTIONAL_TRIPLE = 16
-EQUAL_DISTANCE = 32
+PROPORTIONAL_QUAD = 32
+
+def safediv(a,b):
+  if b == 0:
+    return 0
+  return a/b
 
 class TTSolver:
 
@@ -54,16 +59,34 @@ class TTSolver:
             v1 = self.xvar(h.originNode)
             v2 = self.xvar(h.targetNode)
             v3 = self.xvar(h.otherNode1)
-            proportion = (h.targetNode.position.x - h.originNode.position.x) / (h.otherNode1.position.x - h.targetNode.position.x)
+            proportion = safediv(h.targetNode.position.x - h.originNode.position.x , h.otherNode1.position.x - h.targetNode.position.x)
           else:
             v1 = self.yvar(h.originNode)
             v2 = self.yvar(h.targetNode)
             v3 = self.yvar(h.otherNode1)
-            proportion = (h.targetNode.position.y - h.originNode.position.y) / (h.otherNode1.position.y - h.targetNode.position.y)
+            proportion = safediv(h.targetNode.position.y - h.originNode.position.y, h.otherNode1.position.y - h.targetNode.position.y)
           d1 = v2 - v1
           d2 = v3 - v2
           c.append(d2 * proportion == d1)
 
+        if h.options() == PROPORTIONAL_QUAD:
+          on2 = h.valueForKey_("otherNode2") # Glyphs bug
+          if h.horizontal:
+            v1 = self.xvar(h.originNode)
+            v2 = self.xvar(h.targetNode)
+            v3 = self.xvar(h.otherNode1)
+            v4 = self.xvar(on2)
+            proportion = safediv(h.targetNode.position.x - h.originNode.position.x, on2.position.x - h.otherNode1.position.x)
+          else:
+            v1 = self.yvar(h.originNode)
+            v2 = self.yvar(h.targetNode)
+            v3 = self.yvar(h.otherNode1)
+            v4 = self.yvar(on2)
+            proportion = safediv(h.targetNode.position.y - h.originNode.position.y, on2.position.y - h.otherNode1.position.y)
+          d1 = v2 - v1
+          d2 = v4 - v3
+          # print(d1,d2,proportion)
+          c.append(d2 * proportion == d1)
     for cs in c:
       self.solver.add_constraint(cs)
 
@@ -79,13 +102,13 @@ class TTSolver:
     with self.solver.edit():
       for j in nodes:
         n = self.nodehash[j.hash()]
-        print("Suggesting ",n["node"].position.x,n["node"].position.y)
+        # print("Suggesting ",n["node"].position.x,n["node"].position.y)
         self.solver.suggest_value(n["xvar"], n["node"].position.x)
         self.solver.suggest_value(n["yvar"], n["node"].position.y)
 
     for j in nodes:
       n = self.nodehash[j.hash()]
-      print("Got: ",n["xvar"],n["yvar"])
+      # print("Got: ",n["xvar"],n["yvar"])
 
   def updateGlyphWithSolution(self):
     for i in self.nodehash:
