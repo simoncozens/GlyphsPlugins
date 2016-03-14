@@ -50,13 +50,18 @@ class TTSolver:
           c.append(xstem == xValue)
 
         if h.options() == PROPORTIONAL_TRIPLE:
-          v1 = self.xvar(h.originNode)
-          v2 = self.xvar(h.targetNode)
-          v3 = self.xvar(h.otherNode1)
-          print(v3, h.otherNode1)
+          if h.horizontal:
+            v1 = self.xvar(h.originNode)
+            v2 = self.xvar(h.targetNode)
+            v3 = self.xvar(h.otherNode1)
+            proportion = (h.targetNode.position.x - h.originNode.position.x) / (h.otherNode1.position.x - h.targetNode.position.x)
+          else:
+            v1 = self.yvar(h.originNode)
+            v2 = self.yvar(h.targetNode)
+            v3 = self.yvar(h.otherNode1)
+            proportion = (h.targetNode.position.y - h.originNode.position.y) / (h.otherNode1.position.y - h.targetNode.position.y)
           d1 = v2 - v1
           d2 = v3 - v2
-          proportion = (h.targetNode.position.x - h.originNode.position.x) / (h.otherNode1.position.x - h.targetNode.position.x)
           c.append(d2 * proportion == d1)
 
     for cs in c:

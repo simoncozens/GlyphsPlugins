@@ -59,16 +59,10 @@ class ContentAwareSelect(SelectTool):
           NSColor.brownColor().set()
           bez = NSBezierPath.bezierPath()
           bez.setLineWidth_(2.0)
-          mid1 = NSPoint()
-          mid1.x = t.targetNode.position.x-5
-          mid1.y = t.targetNode.position.y-5
-          mid2 = NSPoint()
-          mid2.x = t.targetNode.position.x+5
-          mid2.y = t.targetNode.position.y-5
-
           bez.moveToPoint_(t.originNode.position)
 
-          bez.curveToPoint_controlPoint1_controlPoint2_(t.otherNode1.position,mid1,mid2)
+          bez.lineToPoint_(t.targetNode.position)
+          bez.lineToPoint_(t.otherNode1.position)
           bez.stroke()
         elif t.horizontal:
           NSColor.redColor().set()
@@ -119,6 +113,7 @@ class ContentAwareSelect(SelectTool):
 
       if len(s) == 3:
         contextMenus.append({'name': "Add horizontal proportion constraint", 'action': self.constrainHProportion})
+        contextMenus.append({'name': "Add vertical proportion constraint", 'action': self.constrainVProportion})
 
     # Return list of context menu items
     return contextMenus
@@ -162,8 +157,18 @@ class ContentAwareSelect(SelectTool):
   def constrainHProportion(self, sender):
     layer = Glyphs.font.selectedLayers[0]
     hint = self._makeHint(layer)
+    hint.horizontal = True
     hint.setOptions_(PROPORTIONAL_TRIPLE)
-    hint.setName_("p")
+    hint.setName_("hp")
+    layer.hints.append(hint)
+    self._rebuild()
+
+  def constrainVProportion(self, sender):
+    layer = Glyphs.font.selectedLayers[0]
+    hint = self._makeHint(layer)
+    hint.horizontal = False
+    hint.setOptions_(PROPORTIONAL_TRIPLE)
+    hint.setName_("vp")
     layer.hints.append(hint)
     self._rebuild()
 
