@@ -1,8 +1,9 @@
 from cassowary import Variable, SimplexSolver, STRONG, WEAK, REQUIRED
 from GlyphsApp import GSOFFCURVE, TAG
 
-DISTANCE = 4
-PROPORTIONAL_TRIPLE = 8
+DIAGONAL = 8
+PROPORTIONAL_TRIPLE = 16
+EQUAL_DISTANCE = 32
 
 class TTSolver:
 
@@ -34,19 +35,29 @@ class TTSolver:
     c = []
     for h in layer.hints:
       if h.type == TAG:
-        if h.options() < 8 and not h.horizontal:
+        if h.options() == DIAGONAL or (h.options() < 8 and not h.horizontal):
           v1 = self.yvar(h.originNode)
           v2 = self.yvar(h.targetNode)
           yValue = v1.value - v2.value
           ystem = v1 - v2
           c.append(ystem == yValue)
 
-        if h.options() < 8 and h.horizontal:
+        if h.options() == DIAGONAL or (h.options() < 8 and h.horizontal):
           v1 = self.xvar(h.originNode)
           v2 = self.xvar(h.targetNode)
           xValue = v1.value - v2.value
           xstem = v1 - v2
           c.append(xstem == xValue)
+
+        if h.options() == PROPORTIONAL_TRIPLE:
+          v1 = self.xvar(h.originNode)
+          v2 = self.xvar(h.targetNode)
+          v3 = self.xvar(h.otherNode1)
+          print(v3, h.otherNode1)
+          d1 = v2 - v1
+          d2 = v3 - v2
+          proportion = (h.targetNode.position.x - h.originNode.position.x) / (h.otherNode1.position.x - h.targetNode.position.x)
+          c.append(d2 * proportion == d1)
 
     for cs in c:
       self.solver.add_constraint(cs)

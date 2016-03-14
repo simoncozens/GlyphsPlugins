@@ -13,7 +13,7 @@
 
 
 from GlyphsApp.plugins import *
-from TTSolver import TTSolver
+from TTSolver import TTSolver, DIAGONAL, PROPORTIONAL_TRIPLE
 import sys
 import traceback
 from GlyphsApp import TAG
@@ -48,7 +48,29 @@ class ContentAwareSelect(SelectTool):
     # Display Tag hints
     for t in layer.hints:
       if t.type == TAG:
-        if t.horizontal:
+        if t.options() == DIAGONAL:
+          NSColor.greenColor().set()
+          bez = NSBezierPath.bezierPath()
+          bez.setLineWidth_(2.0)
+          bez.moveToPoint_(t.originNode.position)
+          bez.lineToPoint_(t.targetNode.position)
+          bez.stroke()
+        elif t.options() == PROPORTIONAL_TRIPLE:
+          NSColor.brownColor().set()
+          bez = NSBezierPath.bezierPath()
+          bez.setLineWidth_(2.0)
+          mid1 = NSPoint()
+          mid1.x = t.targetNode.position.x-5
+          mid1.y = t.targetNode.position.y-5
+          mid2 = NSPoint()
+          mid2.x = t.targetNode.position.x+5
+          mid2.y = t.targetNode.position.y-5
+
+          bez.moveToPoint_(t.originNode.position)
+
+          bez.curveToPoint_controlPoint1_controlPoint2_(t.otherNode1.position,mid1,mid2)
+          bez.stroke()
+        elif t.horizontal:
           NSColor.redColor().set()
           bez = NSBezierPath.bezierPath()
           bez.setLineWidth_(2.0)
@@ -56,8 +78,8 @@ class ContentAwareSelect(SelectTool):
           mid1.x = t.originNode.position.x+5
           mid1.y = t.originNode.position.y-5
           mid2 = NSPoint()
-          mid2.x = t.originNode.position.x-5
-          mid2.y = t.originNode.position.y-5
+          mid2.x = t.targetNode.position.x-5
+          mid2.y = t.targetNode.position.y-5
 
           bez.moveToPoint_(t.originNode.position)
           bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position,mid1,mid2)
@@ -70,8 +92,8 @@ class ContentAwareSelect(SelectTool):
           mid1.x = t.originNode.position.x+5
           mid1.y = t.originNode.position.y+5
           mid2 = NSPoint()
-          mid2.x = t.originNode.position.x+5
-          mid2.y = t.originNode.position.y+5
+          mid2.x = t.targetNode.position.x+5
+          mid2.y = t.targetNode.position.y+5
 
           bez.moveToPoint_(t.originNode.position)
           bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position,mid1,mid2)
@@ -89,27 +111,33 @@ class ContentAwareSelect(SelectTool):
     # Execute only if layers are actually selected
     if Glyphs.font.selectedLayers:
       layer = Glyphs.font.selectedLayers[0]
-
-      if len(layer.selection) == 2 and type(layer.selection[0]) == GSNode and type(layer.selection[1]) == GSNode:
+      s = filter(lambda x: type(x) == GSNode, layer.selection)
+      if len(s) == 2:
         contextMenus.append({'name': "Add horizontal constraint", 'action': self.constrainX})
         contextMenus.append({'name': "Add vertical constraint", 'action': self.constrainY})
-        contextMenus.append({'name': "Add distance constraint", 'action': self.constrainXY})
+        contextMenus.append({'name': "Add diagonal constraint", 'action': self.constrainXY})
 
-      if len(layer.selection) == 3 and type(layer.selection[0]) == GSNode and type(layer.selection[1]) == GSNode:
-        contextMenus.append({'name': "Add proportion constraint", 'action': self.notYet})
+      if len(s) == 3:
+        contextMenus.append({'name': "Add horizontal proportion constraint", 'action': self.constrainHProportion})
 
     # Return list of context menu items
     return contextMenus
 
-  def _makeTwoHint(self,layer):
+  def _makeHint(self,layer):
     hint = GSHint()
     hint.type = TAG
-    hint.originNode, hint.targetNode = layer.selection[0], layer.selection[1]
+    s = filter(lambda x: type(x) == GSNode, layer.selection)
+    s = sorted(s, key=lambda l: l.position.x)
+    hint.originNode, hint.targetNode = s[0], s[1]
+    if len(s) > 2:
+      hint.otherNode1 = s[2]
+    if len(s) > 3:
+      hint.otherNode2 = s[3]
     return hint
 
   def constrainX(self, sender):
     layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeTwoHint(layer)
+    hint = self._makeHint(layer)
     hint.horizontal = True
     hint.setName_("h")
     layer.hints.append(hint)
@@ -117,14 +145,27 @@ class ContentAwareSelect(SelectTool):
 
   def constrainY(self, sender):
     layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeTwoHint(layer)
+    hint = self._makeHint(layer)
     hint.horizontal = False
     hint.setName_("v")
     layer.hints.append(hint)
     self._rebuild()
 
   def constrainXY(self, sender):
-    return
+    layer = Glyphs.font.selectedLayers[0]
+    hint = self._makeHint(layer)
+    hint.setOptions_(DIAGONAL)
+    hint.setName_("d")
+    layer.hints.append(hint)
+    self._rebuild()
+
+  def constrainHProportion(self, sender):
+    layer = Glyphs.font.selectedLayers[0]
+    hint = self._makeHint(layer)
+    hint.setOptions_(PROPORTIONAL_TRIPLE)
+    hint.setName_("p")
+    layer.hints.append(hint)
+    self._rebuild()
 
   def update(self):
     try:
