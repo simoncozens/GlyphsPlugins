@@ -48,7 +48,34 @@ class ContentAwareSelect(SelectTool):
     # Display Tag hints
     for t in layer.hints:
       if t.type == TAG:
-        print(t)
+        if t.horizontal:
+          NSColor.redColor().set()
+          bez = NSBezierPath.bezierPath()
+          bez.setLineWidth_(2.0)
+          mid1 = NSPoint()
+          mid1.x = t.originNode.position.x+5
+          mid1.y = t.originNode.position.y-5
+          mid2 = NSPoint()
+          mid2.x = t.originNode.position.x-5
+          mid2.y = t.originNode.position.y-5
+
+          bez.moveToPoint_(t.originNode.position)
+          bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position,mid1,mid2)
+          bez.stroke()
+        elif not t.horizontal:
+          NSColor.blueColor().set()
+          bez = NSBezierPath.bezierPath()
+          bez.setLineWidth_(2.0)
+          mid1 = NSPoint()
+          mid1.x = t.originNode.position.x+5
+          mid1.y = t.originNode.position.y+5
+          mid2 = NSPoint()
+          mid2.x = t.originNode.position.x+5
+          mid2.y = t.originNode.position.y+5
+
+          bez.moveToPoint_(t.originNode.position)
+          bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position,mid1,mid2)
+          bez.stroke()
 
   def deactivate(self):
     NSNotificationCenter.defaultCenter().removeObserver_name_object_(self, "GSUpdateInterface", None)
