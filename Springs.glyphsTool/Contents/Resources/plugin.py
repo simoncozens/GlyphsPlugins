@@ -65,11 +65,12 @@ class Springs(SelectTool):
           bez.lineToPoint_(t.otherNode1.position)
           bez.stroke()
         elif t.options() == PROPORTIONAL_QUAD:
+          on2 = t.valueForKey_("otherNode2") # Glyphs bug
           NSColor.yellowColor().set()
           bez = NSBezierPath.bezierPath()
           bez.setLineWidth_(2.0)
           bez.moveToPoint_(t.originNode.position)
-          bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position, t.otherNode1.position, t.otherNode2.position)
+          bez.curveToPoint_controlPoint1_controlPoint2_(on2.position, t.targetNode.position, t.otherNode1.position)
           bez.stroke()
         elif t.horizontal:
           NSColor.redColor().set()
@@ -124,6 +125,7 @@ class Springs(SelectTool):
 
       if len(s) == 4:
         contextMenus.append({'name': "Add horizontal proportion constraint", 'action': self.constrainHProportion4})
+        contextMenus.append({'name': "Add vertical proportion constraint", 'action': self.constrainVProportion4})
 
     # Return list of context menu items
     return contextMenus
@@ -191,6 +193,16 @@ class Springs(SelectTool):
     hint.horizontal = True
     hint.setOptions_(PROPORTIONAL_QUAD)
     hint.setName_("hp")
+    layer.hints.append(hint)
+    self._rebuild()
+
+
+  def constrainVProportion4(self, sender):
+    layer = Glyphs.font.selectedLayers[0]
+    hint = self._makeHint(layer)
+    hint.horizontal = False
+    hint.setOptions_(PROPORTIONAL_QUAD)
+    hint.setName_("vp")
     layer.hints.append(hint)
     self._rebuild()
 
