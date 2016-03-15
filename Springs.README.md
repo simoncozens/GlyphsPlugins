@@ -42,7 +42,7 @@ We’ll also add a few more constraints, keeping the stems vertical and keeping 
 
 ![](springs-m-3.png)
 
-Now as we move any of the noes of our arch around, the whole thing stays arch-shaped.
+Now as we move any of the nodes of our arch around, the whole thing stays arch-shaped.
 
 One final trick. You can also say fix the proportion of two distances. Rather than fixing the stem width of each of our m’s legs, we could say that the stem width of each leg must always be equal to the other legs. To do this, we select four points - the left and right of the right and middle legs - and add a yellow "horizontal proportion constraint". Then we select the left and right nodes of the left and middle legs and do it add another yellow constraint. Our m ends up with quite a lot of constraints:
 
