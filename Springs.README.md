@@ -20,7 +20,7 @@ Now, as we move the bottom node, the top node moves too:
 
 ![](springs-e-1.png)
 
-Very nice. We’ve kept the vertical distance the same, but as we moved our node horizontally, the node on the other side stayed at its previous X position. And maybe you want that for some things, but it’s not what we want for our E. There are two things we could do here. We could select the same two nodes and add another contraint - this time, a horizontal one. (If we do that we get a red line as well as the blue line.) But what we’re going to do instead is delete the vertical constraint by clicking on its handle and making a diagonal constraint as well. This constrains both X and Y distances between two nodes.
+Very nice. We’ve kept the vertical distance the same, but as we moved our node horizontally, the node on the other side stayed at its previous X position. And maybe you want that for some things, but it’s not what we want for our E. There are two things we could do here. We could select the same two nodes and add another contraint - this time, a horizontal one. (If we do that we get a red line as well as the blue line.) But what we’re going to do instead is delete the vertical constraint by clicking on its handle and hitting delete, and then making a diagonal constraint instead. This constrains both X and Y distances between two nodes.
 
 Now we find that the nodes move in parallel, maintaining the stem:
 
