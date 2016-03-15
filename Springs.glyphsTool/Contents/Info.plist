@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>ContentAwareSelect</string>
+	<string>Springs</string>
 	<key>CFBundleExecutable</key>
 	<string>plugin</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>ContentAwareSelect</string>
+	<string>Springs</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleSignature</key>
@@ -29,7 +29,7 @@
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
-	<string>ContentAwareSelect</string>
+	<string>Springs</string>
 	<key>PyMainFileNames</key>
 	<array>
 		<string>__boot__</string>

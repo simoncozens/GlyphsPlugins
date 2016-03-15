@@ -20,12 +20,12 @@ from GlyphsApp import TAG
 
 GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
 
-class ContentAwareSelect(SelectTool):
+class Springs(SelectTool):
   constraining = False
   solver = TTSolver()
 
   def settings(self):
-    self.name = "ContentAwareSelect"
+    self.name = "Springs"
 
   def start(self):
     pass
