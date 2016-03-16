@@ -27,11 +27,15 @@ class TTSolver:
     self.setConstraintsFromHints(layer)
 
   def yvar(self,n):
+    if not n:
+      raise ValueError
     if not (n.hash() in self.nodehash):
       raise KeyError(n)
     return self.nodehash[n.hash()]["yvar"]
 
   def xvar(self,n):
+    if not n:
+      raise ValueError
     if not (n.hash() in self.nodehash):
       raise KeyError(n)
     return self.nodehash[n.hash()]["xvar"]
@@ -40,53 +44,56 @@ class TTSolver:
     c = []
     for h in layer.hints:
       if h.type == TAG:
-        if h.options() == DIAGONAL or (h.options() < 8 and not h.horizontal):
-          v1 = self.yvar(h.originNode)
-          v2 = self.yvar(h.targetNode)
-          yValue = v1.value - v2.value
-          ystem = v1 - v2
-          c.append(ystem == yValue)
-
-        if h.options() == DIAGONAL or (h.options() < 8 and h.horizontal):
-          v1 = self.xvar(h.originNode)
-          v2 = self.xvar(h.targetNode)
-          xValue = v1.value - v2.value
-          xstem = v1 - v2
-          c.append(xstem == xValue)
-
-        if h.options() == PROPORTIONAL_TRIPLE:
-          if h.horizontal:
-            v1 = self.xvar(h.originNode)
-            v2 = self.xvar(h.targetNode)
-            v3 = self.xvar(h.otherNode1)
-            proportion = safediv(h.targetNode.position.x - h.originNode.position.x , h.otherNode1.position.x - h.targetNode.position.x)
-          else:
+        try:
+          if h.options() == DIAGONAL or (h.options() < 8 and not h.horizontal):
             v1 = self.yvar(h.originNode)
             v2 = self.yvar(h.targetNode)
-            v3 = self.yvar(h.otherNode1)
-            proportion = safediv(h.targetNode.position.y - h.originNode.position.y, h.otherNode1.position.y - h.targetNode.position.y)
-          d1 = v2 - v1
-          d2 = v3 - v2
-          c.append(d2 * proportion == d1)
+            yValue = v1.value - v2.value
+            ystem = v1 - v2
+            c.append(ystem == yValue)
 
-        if h.options() == PROPORTIONAL_QUAD:
-          on2 = h.valueForKey_("otherNode2") # Glyphs bug
-          if h.horizontal:
+          if h.options() == DIAGONAL or (h.options() < 8 and h.horizontal):
             v1 = self.xvar(h.originNode)
             v2 = self.xvar(h.targetNode)
-            v3 = self.xvar(h.otherNode1)
-            v4 = self.xvar(on2)
-            proportion = safediv(h.targetNode.position.x - h.originNode.position.x, on2.position.x - h.otherNode1.position.x)
-          else:
-            v1 = self.yvar(h.originNode)
-            v2 = self.yvar(h.targetNode)
-            v3 = self.yvar(h.otherNode1)
-            v4 = self.yvar(on2)
-            proportion = safediv(h.targetNode.position.y - h.originNode.position.y, on2.position.y - h.otherNode1.position.y)
-          d1 = v2 - v1
-          d2 = v4 - v3
-          # print(d1,d2,proportion)
-          c.append(d2 * proportion == d1)
+            xValue = v1.value - v2.value
+            xstem = v1 - v2
+            c.append(xstem == xValue)
+
+          if h.options() == PROPORTIONAL_TRIPLE:
+            if h.horizontal:
+              v1 = self.xvar(h.originNode)
+              v2 = self.xvar(h.targetNode)
+              v3 = self.xvar(h.otherNode1)
+              proportion = safediv(h.targetNode.position.x - h.originNode.position.x , h.otherNode1.position.x - h.targetNode.position.x)
+            else:
+              v1 = self.yvar(h.originNode)
+              v2 = self.yvar(h.targetNode)
+              v3 = self.yvar(h.otherNode1)
+              proportion = safediv(h.targetNode.position.y - h.originNode.position.y, h.otherNode1.position.y - h.targetNode.position.y)
+            d1 = v2 - v1
+            d2 = v3 - v2
+            c.append(d2 * proportion == d1)
+
+          if h.options() == PROPORTIONAL_QUAD:
+            on2 = h.valueForKey_("otherNode2") # Glyphs bug
+            if h.horizontal:
+              v1 = self.xvar(h.originNode)
+              v2 = self.xvar(h.targetNode)
+              v3 = self.xvar(h.otherNode1)
+              v4 = self.xvar(on2)
+              proportion = safediv(h.targetNode.position.x - h.originNode.position.x, on2.position.x - h.otherNode1.position.x)
+            else:
+              v1 = self.yvar(h.originNode)
+              v2 = self.yvar(h.targetNode)
+              v3 = self.yvar(h.otherNode1)
+              v4 = self.yvar(on2)
+              proportion = safediv(h.targetNode.position.y - h.originNode.position.y, on2.position.y - h.otherNode1.position.y)
+            d1 = v2 - v1
+            d2 = v4 - v3
+            # print(d1,d2,proportion)
+            c.append(d2 * proportion == d1)
+        except ValueError:
+          print("I found a busted constraint. It'll get cleaned up soon.")
     for cs in c:
       self.solver.add_constraint(cs)
 

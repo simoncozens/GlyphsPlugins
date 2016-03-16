@@ -41,10 +41,27 @@ class Springs(SelectTool):
     self._rebuild()
     pass
 
+  def verifyHint(self,t):
+    if t.type != TAG:
+      return True # Pass through other people's hints
+    if not t.originNode or not t.targetNode:
+      return False
+    if t.options() == PROPORTIONAL_TRIPLE and not t.otherNode1:
+      return False
+    if t.options() == PROPORTIONAL_QUAD and (not t.otherNode1 or not t.valueForKey_("otherNode2")):
+      return False
+    return True
+
   def background(self, layer):
     pass
 
   def foreground(self, layer):
+    # Check all hints, delete broken ones
+    newhints = filter(lambda h: self.verifyHint(h), layer.hints)
+    if len(newhints) != len(layer.hints):
+      layer.hints = newhints
+      self._rebuild()
+
     # Display Tag hints
     for t in layer.hints:
       if t.type == TAG:
@@ -116,14 +133,11 @@ class Springs(SelectTool):
     hint.type = TAG
     s = filter(lambda x: type(x) == GSNode, layer.selection)
     s = sorted(s, key=lambda l: l.position.x)
-    print(s)
     hint.originNode, hint.targetNode = s[0], s[1]
     if len(s) > 2:
       hint.otherNode1 = s[2]
-      print("ON1: ", s[2])
     if len(s) > 3:
       hint.setOtherNode2_(s[3]) # Work around glyphs bug
-      print("ON2: ", s[3])
     return hint
 
   def constrainX(self, sender):
@@ -192,7 +206,6 @@ class Springs(SelectTool):
       if self.__class__.constraining:
         return
       self.__class__.constraining = True
-      print("I saw it change!", self.__class__.solver)
       layer = Glyphs.font.selectedLayers[0]
       self.__class__.solver.setStayFromNodes(layer.selection)
 
