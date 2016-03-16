@@ -133,8 +133,9 @@ class TTSolver:
       self.solver.add_edit_var(n["xvar"])
       self.solver.add_edit_var(n["yvar"])
 
-    with self.solver.edit():
-      for i in self.nodehash:
-        n = self.nodehash[i]
-        self.solver.suggest_value(n["xvar"], n["node"].position.x)
-        self.solver.suggest_value(n["yvar"], n["node"].position.y)
+    if len(self.nodehash) > 0:
+      with self.solver.edit():
+        for i in self.nodehash:
+          n = self.nodehash[i]
+          self.solver.suggest_value(n["xvar"], n["node"].position.x)
+          self.solver.suggest_value(n["yvar"], n["node"].position.y)
