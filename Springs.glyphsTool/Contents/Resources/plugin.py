@@ -48,58 +48,39 @@ class Springs(SelectTool):
     # Display Tag hints
     for t in layer.hints:
       if t.type == TAG:
+        bez = NSBezierPath.bezierPath()
+        bez.setLineWidth_(2.0)
+        bez.moveToPoint_(t.originNode.position)
         if t.options() == DIAGONAL:
           NSColor.greenColor().set()
-          bez = NSBezierPath.bezierPath()
-          bez.setLineWidth_(2.0)
-          bez.moveToPoint_(t.originNode.position)
           bez.lineToPoint_(t.targetNode.position)
-          bez.stroke()
         elif t.options() == PROPORTIONAL_TRIPLE:
           NSColor.brownColor().set()
-          bez = NSBezierPath.bezierPath()
-          bez.setLineWidth_(2.0)
-          bez.moveToPoint_(t.originNode.position)
-
           bez.lineToPoint_(t.targetNode.position)
           bez.lineToPoint_(t.otherNode1.position)
-          bez.stroke()
         elif t.options() == PROPORTIONAL_QUAD:
           on2 = t.valueForKey_("otherNode2") # Glyphs bug
           NSColor.yellowColor().set()
-          bez = NSBezierPath.bezierPath()
-          bez.setLineWidth_(2.0)
-          bez.moveToPoint_(t.originNode.position)
           bez.curveToPoint_controlPoint1_controlPoint2_(on2.position, t.targetNode.position, t.otherNode1.position)
-          bez.stroke()
         elif t.horizontal:
           NSColor.redColor().set()
-          bez = NSBezierPath.bezierPath()
-          bez.setLineWidth_(2.0)
           mid1 = NSPoint()
           mid1.x = t.originNode.position.x+5
           mid1.y = t.originNode.position.y-5
           mid2 = NSPoint()
           mid2.x = t.targetNode.position.x-5
           mid2.y = t.targetNode.position.y-5
-
-          bez.moveToPoint_(t.originNode.position)
           bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position,mid1,mid2)
-          bez.stroke()
         elif not t.horizontal:
           NSColor.blueColor().set()
-          bez = NSBezierPath.bezierPath()
-          bez.setLineWidth_(2.0)
           mid1 = NSPoint()
           mid1.x = t.originNode.position.x+5
           mid1.y = t.originNode.position.y+5
           mid2 = NSPoint()
           mid2.x = t.targetNode.position.x+5
           mid2.y = t.targetNode.position.y+5
-
-          bez.moveToPoint_(t.originNode.position)
           bez.curveToPoint_controlPoint1_controlPoint2_(t.targetNode.position,mid1,mid2)
-          bez.stroke()
+        bez.stroke()
 
   def deactivate(self):
     NSNotificationCenter.defaultCenter().removeObserver_name_object_(self, "GSUpdateInterface", None)
