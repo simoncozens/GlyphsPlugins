@@ -204,6 +204,7 @@ class Springs(SelectTool):
         return
       self.__class__.constraining = True
       layer = Glyphs.font.selectedLayers[0]
+      layer.parent.undoManager().disableUndoRegistration()
       self.__class__.solver.setStayFromNodes(layer.selection)
 
       self.__class__.solver.updateGlyphWithSolution()
@@ -213,5 +214,6 @@ class Springs(SelectTool):
       traceback.print_tb(tb) # Fixed format
       tb_info = traceback.extract_tb(tb)
       filename, line, func, text = tb_info[-1]
-
       print('An error occurred on line {} in statement {}'.format(line, text))
+    finally:
+      layer.parent.undoManager().enableUndoRegistration()
