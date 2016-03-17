@@ -33,6 +33,8 @@ class Springs(SelectTool):
 
   def _rebuild(self):
     try:
+      if len(Glyphs.font.selectedLayers) == 0:
+        return
       l = Glyphs.font.selectedLayers[0]
       self.__class__.solver.initialSetup(l)
       self.__class__.solver.setConstraintsFromHints(l)
@@ -102,7 +104,6 @@ class Springs(SelectTool):
 
   def deactivate(self):
     NSNotificationCenter.defaultCenter().removeObserver_name_object_(self, "GSUpdateInterface", None)
-    pass
 
   def conditionalContextMenus(self):
 
@@ -213,31 +214,28 @@ class Springs(SelectTool):
 
       self.__class__.solver.updateGlyphWithSolution()
       self.__class__.constraining = False
-    except Exception, e:
-      _, _, tb = sys.exc_info()
-      traceback.print_tb(tb) # Fixed format
-      tb_info = traceback.extract_tb(tb)
-      filename, line, func, text = tb_info[-1]
-      print('An error occurred on line {} in statement {}'.format(line, text))
+    except:
+      print traceback.format_exc()
     finally:
       layer.parent.undoManager().enableUndoRegistration()
 
   def inspectorViewControllers(self):
-    self.storedControllers = {} #self.valueForKey_("inspectorViewControllers")
-    layer = self.editViewController().graphicView().activeLayer()
-    if layer is None:
-      return []
+    Inspectors = []
     try:
-      Inspector = self.storedControllers["GSGlyph"]
-    except:
-        Inspector = NSClassFromString("InspectorViewGlyphController").alloc().initWithNibName_bundle_("InspectorViewGSGlyph", NSBundle.bundleForClass_(NSClassFromString("GSFont")))
-        Inspector.view()
-        self.storedControllers["GSGlyph"] = Inspector
-    Inspectors = [Inspector]
-    
-    Inspector.setRepresentedObject_(layer)
-    
-    try:
+      if not hasattr(self, "storedControllers"):
+        self.storedControllers = {}
+      layer = self.editViewController().graphicView().activeLayer()
+      if layer is None:
+        return []
+      try:
+        Inspector = self.storedControllers["GSGlyph"]
+      except:
+          Inspector = NSClassFromString("InspectorViewGlyphController").alloc().initWithNibName_bundle_("InspectorViewGSGlyph", NSBundle.bundleForClass_(NSClassFromString("GSFont")))
+          Inspector.view()
+          self.storedControllers["GSGlyph"] = Inspector
+      Inspectors.append(Inspector)
+      Inspector.setRepresentedObject_(layer)
+      
       if len(layer.selection) == 1:
         selectedObject = layer.selection[0]
         if selectedObject.className() == "GSHint" and selectedObject.type == TAG:
@@ -254,5 +252,5 @@ class Springs(SelectTool):
       print traceback.format_exc()
     
     return Inspectors
-    
+
     
