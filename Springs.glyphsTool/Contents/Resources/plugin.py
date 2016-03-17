@@ -17,6 +17,7 @@ from TTSolver import TTSolver, DIAGONAL, PROPORTIONAL_TRIPLE, PROPORTIONAL_QUAD
 import sys
 import traceback
 from GlyphsApp import TAG
+from singleConstraintViewController import SingleConstraintViewController
 
 GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
 
@@ -26,15 +27,21 @@ class Springs(SelectTool):
 
   def settings(self):
     self.name = "Springs"
+    Glyphs.addCallback(self.drawGlyphIntoBackground, DRAWBACKGROUND)
 
   def start(self):
     pass
 
   def _rebuild(self):
-    l = Glyphs.font.selectedLayers[0]
-    self.__class__.solver.initialSetup(l)
-    self.__class__.solver.setConstraintsFromHints(l)
-    self.__class__.solver.updateSolverFromGlyph()
+    try:
+      if len(Glyphs.font.selectedLayers) == 0:
+        return
+      l = Glyphs.font.selectedLayers[0]
+      self.__class__.solver.initialSetup(l)
+      self.__class__.solver.setConstraintsFromHints(l)
+      self.__class__.solver.updateSolverFromGlyph()
+    except:
+      pass # may happen if tab is closed
 
   def activate(self):
     NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(self, objc.selector(self.update,signature='v@:'), "GSUpdateInterface", None)
@@ -52,10 +59,8 @@ class Springs(SelectTool):
       return False
     return True
 
-  def background(self, layer):
-    pass
-
-  def foreground(self, layer):
+  def drawGlyphIntoBackground(self, layer, info):
+    print "__self, layer, info", self, layer, info
     # Check all hints, delete broken ones
     newhints = filter(lambda h: self.verifyHint(h), layer.hints)
     if len(newhints) != len(layer.hints):
@@ -101,7 +106,6 @@ class Springs(SelectTool):
 
   def deactivate(self):
     NSNotificationCenter.defaultCenter().removeObserver_name_object_(self, "GSUpdateInterface", None)
-    pass
 
   def conditionalContextMenus(self):
 
@@ -207,14 +211,48 @@ class Springs(SelectTool):
         return
       self.__class__.constraining = True
       layer = Glyphs.font.selectedLayers[0]
+      layer.parent.undoManager().disableUndoRegistration()
       self.__class__.solver.setStayFromNodes(layer.selection)
 
       self.__class__.solver.updateGlyphWithSolution()
       self.__class__.constraining = False
-    except Exception, e:
-      _, _, tb = sys.exc_info()
-      traceback.print_tb(tb) # Fixed format
-      tb_info = traceback.extract_tb(tb)
-      filename, line, func, text = tb_info[-1]
+    except:
+      print traceback.format_exc()
+    finally:
+      layer.parent.undoManager().enableUndoRegistration()
 
-      print('An error occurred on line {} in statement {}'.format(line, text))
+  def inspectorViewControllers(self):
+    Inspectors = []
+    try:
+      if not hasattr(self, "storedControllers"):
+        self.storedControllers = {}
+      layer = self.editViewController().graphicView().activeLayer()
+      if layer is None:
+        return []
+      try:
+        Inspector = self.storedControllers["GSGlyph"]
+      except:
+          Inspector = NSClassFromString("InspectorViewGlyphController").alloc().initWithNibName_bundle_("InspectorViewGSGlyph", NSBundle.bundleForClass_(NSClassFromString("GSFont")))
+          Inspector.view()
+          self.storedControllers["GSGlyph"] = Inspector
+      Inspectors.append(Inspector)
+      Inspector.setRepresentedObject_(layer)
+      
+      if len(layer.selection) == 1:
+        selectedObject = layer.selection[0]
+        if selectedObject.className() == "GSHint" and selectedObject.type == TAG:
+          try:
+            Inspector = self.storedControllers["Constraint"]
+          except:
+            Inspector = SingleConstraintViewController.alloc().initWithNibName_bundle_("singleConstraintView", NSBundle.bundleForClass_(NSClassFromString("Springs")))
+            Inspector.view()
+            self.storedControllers["Constraint"] = Inspector
+          
+          Inspector.setRepresentedObject_(selectedObject)
+          Inspectors.append(Inspector)
+    except:
+      print traceback.format_exc()
+    
+    return Inspectors
+
+    
