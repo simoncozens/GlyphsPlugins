@@ -27,6 +27,7 @@ class Springs(SelectTool):
 
   def settings(self):
     self.name = "Springs"
+    Glyphs.addCallback(self.drawGlyphIntoBackground, DRAWBACKGROUND)
 
   def start(self):
     pass
@@ -58,7 +59,8 @@ class Springs(SelectTool):
       return False
     return True
 
-  def background(self, layer):
+  def drawGlyphIntoBackground(self, layer, info):
+    print "__self, layer, info", self, layer, info
     # Check all hints, delete broken ones
     newhints = filter(lambda h: self.verifyHint(h), layer.hints)
     if len(newhints) != len(layer.hints):
