@@ -32,10 +32,13 @@ class Springs(SelectTool):
     pass
 
   def _rebuild(self):
-    l = Glyphs.font.selectedLayers[0]
-    self.__class__.solver.initialSetup(l)
-    self.__class__.solver.setConstraintsFromHints(l)
-    self.__class__.solver.updateSolverFromGlyph()
+    try:
+      l = Glyphs.font.selectedLayers[0]
+      self.__class__.solver.initialSetup(l)
+      self.__class__.solver.setConstraintsFromHints(l)
+      self.__class__.solver.updateSolverFromGlyph()
+    except:
+      pass # may happen if tab is closed
 
   def activate(self):
     NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(self, objc.selector(self.update,signature='v@:'), "GSUpdateInterface", None)
