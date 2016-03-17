@@ -17,6 +17,7 @@ from TTSolver import TTSolver, DIAGONAL, PROPORTIONAL_TRIPLE, PROPORTIONAL_QUAD
 import sys
 import traceback
 from GlyphsApp import TAG
+from singleConstraintViewController import SingleConstraintViewController
 
 GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
 
@@ -217,3 +218,38 @@ class Springs(SelectTool):
       print('An error occurred on line {} in statement {}'.format(line, text))
     finally:
       layer.parent.undoManager().enableUndoRegistration()
+
+  def inspectorViewControllers(self):
+    self.storedControllers = {} #self.valueForKey_("inspectorViewControllers")
+    layer = self.editViewController().graphicView().activeLayer()
+    if layer is None:
+      return []
+    try:
+      Inspector = self.storedControllers["GSGlyph"]
+    except:
+        Inspector = NSClassFromString("InspectorViewGlyphController").alloc().initWithNibName_bundle_("InspectorViewGSGlyph", NSBundle.bundleForClass_(NSClassFromString("GSFont")))
+        Inspector.view()
+        self.storedControllers["GSGlyph"] = Inspector
+    Inspectors = [Inspector]
+    
+    Inspector.setRepresentedObject_(layer)
+    
+    try:
+      if len(layer.selection) == 1:
+        selectedObject = layer.selection[0]
+        if selectedObject.className() == "GSHint" and selectedObject.type == TAG:
+          try:
+            Inspector = self.storedControllers["Constraint"]
+          except:
+            Inspector = SingleConstraintViewController.alloc().initWithNibName_bundle_("singleConstraintView", NSBundle.bundleForClass_(NSClassFromString("Springs")))
+            Inspector.view()
+            self.storedControllers["Constraint"] = Inspector
+          
+          Inspector.setRepresentedObject_(selectedObject)
+          Inspectors.append(Inspector)
+    except:
+      print traceback.format_exc()
+    
+    return Inspectors
+    
+    
