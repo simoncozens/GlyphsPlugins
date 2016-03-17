@@ -53,9 +53,6 @@ class Springs(SelectTool):
     return True
 
   def background(self, layer):
-    pass
-
-  def foreground(self, layer):
     # Check all hints, delete broken ones
     newhints = filter(lambda h: self.verifyHint(h), layer.hints)
     if len(newhints) != len(layer.hints):
