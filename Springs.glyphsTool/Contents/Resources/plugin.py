@@ -132,22 +132,25 @@ class Springs(SelectTool):
     return contextMenus
 
   def _makeHint(self,horizontal,name,options = None):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = GSHint()
-    hint.type = TAG
-    s = filter(lambda x: type(x) == GSNode, layer.selection)
-    s = sorted(s, key=lambda l: l.position.x)
-    if options:
-      hint.options = options
-    hint.name = name
-    hint.horizontal = horizontal
-    hint.originNode, hint.targetNode = s[0], s[1]
-    if len(s) > 2:
-      hint.otherNode1 = s[2]
-    if len(s) > 3:
-      hint.setOtherNode2_(s[3]) # Work around glyphs bug
-    layer.hints.append(hint)
-    self._rebuild()
+    try:
+      layer = Glyphs.font.selectedLayers[0]
+      hint = GSHint()
+      hint.type = TAG
+      s = filter(lambda x: type(x) == GSNode, layer.selection)
+      s = sorted(s, key=lambda l: l.position.x)
+      if options:
+        hint.setOptions_(options)
+      hint.setName_(name)
+      hint.horizontal = horizontal
+      hint.originNode, hint.targetNode = s[0], s[1]
+      if len(s) > 2:
+        hint.otherNode1 = s[2]
+      if len(s) > 3:
+        hint.setOtherNode2_(s[3]) # Work around glyphs bug
+      layer.hints.append(hint)
+      self._rebuild()
+    except Exception, e:
+      print traceback.format_exc()
 
   def constrainX(self, sender):
     self._makeHint(True, "h")
@@ -180,11 +183,10 @@ class Springs(SelectTool):
       self.__class__.solver.setStayFromNodes(layer.selection)
 
       self.__class__.solver.updateGlyphWithSolution()
+      layer.parent.undoManager().enableUndoRegistration()
       self.__class__.constraining = False
     except:
       print traceback.format_exc()
-    finally:
-      layer.parent.undoManager().enableUndoRegistration()
 
   def inspectorViewControllers(self):
     Inspectors = []

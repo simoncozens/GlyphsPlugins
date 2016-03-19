@@ -1,5 +1,5 @@
 from cassowary import Variable, SimplexSolver, STRONG, WEAK, REQUIRED
-from GlyphsApp import GSOFFCURVE, TAG
+from GlyphsApp import GSOFFCURVE, TAG, CURVE
 
 DIAGONAL = 8
 PROPORTIONAL_TRIPLE = 16
@@ -97,25 +97,85 @@ class TTSolver:
     for cs in c:
       self.solver.add_constraint(cs)
 
+  def _diagonalConstraints(self, c, n1,n2):
+    v1 = self.xvar(n1)
+    v2 = self.xvar(n2)
+    xValue = v1.value - v2.value
+    xstem = v1 - v2
+    v1 = self.yvar(n1)
+    v2 = self.yvar(n2)
+    yValue = v1.value - v2.value
+    ystem = v1 - v2
+    c.append(xstem == xValue)
+    c.append(ystem == yValue)
+
+  def _makeEditable(self,node):
+    n = self.nodehash[node.hash()]
+    self.solver.add_edit_var(n["xvar"])
+    self.solver.add_edit_var(n["yvar"])
+
+  def _suggest(self,node):
+    n = self.nodehash[node.hash()]
+    # print("Suggesting ",n["node"].position.x,n["node"].position.y)
+    self.solver.suggest_value(n["xvar"], n["node"].position.x)
+    self.solver.suggest_value(n["yvar"], n["node"].position.y)
+
   def setStayFromNodes(self, nl):
     nodes = filter(lambda x:x.hash() in self.nodehash, nl)
     if len(nodes) < 1:
       return
 
+    temporaryConstraints = []
+    c = []
     for n in nodes:
-      self.solver.add_edit_var(self.xvar(n))
-      self.solver.add_edit_var(self.yvar(n))
+      if n.type != GSOFFCURVE:
+        # Constrain left handle and this node
+        if n.prevNode.type == GSOFFCURVE:
+            self._diagonalConstraints(c, n, n.prevNode)
+        if n.nextNode.type == GSOFFCURVE:
+          self._diagonalConstraints(c, n, n.nextNode)
+
+    for cs in c:
+      temporaryConstraints.append(self.solver.add_constraint(cs, strength=WEAK))
+
+    # print("Putting stuff into solver")
+    for n in nodes:
+      self._makeEditable(n)
+      if n.type != GSOFFCURVE:
+        if n.nextNode.type == GSOFFCURVE:
+          self._makeEditable(n.nextNode)
+        if n.prevNode.type == GSOFFCURVE:
+          self._makeEditable(n.prevNode)
+      else:
+        if n.nextNode.type == CURVE and n.nextNode.smooth:
+          self._makeEditable(n.nextNode)
+          self._makeEditable(n.nextNode.nextNode)
+        elif n.prevNode.type == CURVE and n.prevNode.smooth:
+          self._makeEditable(n.prevNode)
+          self._makeEditable(n.prevNode.prevNode)
 
     with self.solver.edit():
-      for j in nodes:
-        n = self.nodehash[j.hash()]
-        # print("Suggesting ",n["node"].position.x,n["node"].position.y)
-        self.solver.suggest_value(n["xvar"], n["node"].position.x)
-        self.solver.suggest_value(n["yvar"], n["node"].position.y)
+      for n in nodes:
+        self._suggest(n)
+        if n.type != GSOFFCURVE:
+          if n.nextNode.type == GSOFFCURVE:
+            self._suggest(n.nextNode)
+          if n.prevNode.type == GSOFFCURVE:
+            self._suggest(n.prevNode)
+        else:
+          if n.nextNode.type == CURVE and n.nextNode.smooth:
+            self._suggest(n.nextNode)
+            self._suggest(n.nextNode.nextNode)
+          elif n.prevNode.type == CURVE and n.prevNode.smooth:
+            self._suggest(n.prevNode)
+            self._suggest(n.prevNode.prevNode)
 
     for j in nodes:
       n = self.nodehash[j.hash()]
       # print("Got: ",n["xvar"],n["yvar"])
+
+    for c in temporaryConstraints:
+      self.solver.remove_constraint(c)
 
   def updateGlyphWithSolution(self):
     for i in self.nodehash:
