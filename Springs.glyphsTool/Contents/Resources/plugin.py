@@ -180,7 +180,7 @@ class Springs(SelectTool):
         return
       self.__class__.constraining = True
       layer.parent.undoManager().disableUndoRegistration()
-      self.__class__.solver.setStayFromNodes(layer.selection)
+      self.__class__.solver.setStayFromNodes(layer)
 
       self.__class__.solver.updateGlyphWithSolution()
       layer.parent.undoManager().enableUndoRegistration()

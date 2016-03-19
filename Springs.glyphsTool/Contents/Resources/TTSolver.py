@@ -120,20 +120,21 @@ class TTSolver:
     self.solver.suggest_value(n["xvar"], n["node"].position.x)
     self.solver.suggest_value(n["yvar"], n["node"].position.y)
 
-  def setStayFromNodes(self, nl):
-    nodes = filter(lambda x:x.hash() in self.nodehash, nl)
+  def setStayFromNodes(self, layer):
+    nodes = filter(lambda x:x.hash() in self.nodehash, layer.selection)
     if len(nodes) < 1:
       return
 
     temporaryConstraints = []
     c = []
-    for n in nodes:
-      if n.type != GSOFFCURVE:
-        # Constrain left handle and this node
-        if n.prevNode.type == GSOFFCURVE:
-            self._diagonalConstraints(c, n, n.prevNode)
-        if n.nextNode.type == GSOFFCURVE:
-          self._diagonalConstraints(c, n, n.nextNode)
+    for p in layer.paths:
+      for n in p.nodes:
+        if n.type != GSOFFCURVE:
+          # Constrain left handle and this node
+          if n.prevNode.type == GSOFFCURVE and not n.prevNode.selected:
+              self._diagonalConstraints(c, n, n.prevNode)
+          if n.nextNode.type == GSOFFCURVE and not n.nextNode.selected:
+            self._diagonalConstraints(c, n, n.nextNode)
 
     for cs in c:
       temporaryConstraints.append(self.solver.add_constraint(cs, strength=WEAK))
