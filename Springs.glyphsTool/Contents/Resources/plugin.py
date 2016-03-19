@@ -150,32 +150,32 @@ class Springs(SelectTool):
     self._rebuild()
 
   def constrainX(self, sender):
-    self._makeHint(layer, True, "h")
+    self._makeHint(True, "h")
 
   def constrainY(self, sender):
-    self._makeHint(layer, False, "v")
+    self._makeHint(False, "v")
 
   def constrainXY(self, sender):
-    self._makeHint(layer, False, "d", DIAGONAL)
+    self._makeHint(False, "d", DIAGONAL)
 
   def constrainHProportion(self, sender):
-    self._makeHint(layer, True, "hp", PROPORTIONAL_TRIPLE)
+    self._makeHint(True, "hp", PROPORTIONAL_TRIPLE)
 
   def constrainVProportion(self, sender):
-    self._makeHint(layer, False, "vp", PROPORTIONAL_TRIPLE)
+    self._makeHint(False, "vp", PROPORTIONAL_TRIPLE)
 
   def constrainHProportion4(self, sender):
-    self._makeHint(layer, True, "hp", PROPORTIONAL_QUAD)
+    self._makeHint(True, "hp", PROPORTIONAL_QUAD)
 
   def constrainVProportion4(self, sender):
-    self._makeHint(layer, False, "vp", PROPORTIONAL_QUAD)
+    self._makeHint(False, "vp", PROPORTIONAL_QUAD)
 
   def update(self):
+    layer = Glyphs.font.selectedLayers[0]
     try:
       if self.__class__.constraining:
         return
       self.__class__.constraining = True
-      layer = Glyphs.font.selectedLayers[0]
       layer.parent.undoManager().disableUndoRegistration()
       self.__class__.solver.setStayFromNodes(layer.selection)
 
