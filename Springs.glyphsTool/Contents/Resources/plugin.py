@@ -131,78 +131,44 @@ class Springs(SelectTool):
     # Return list of context menu items
     return contextMenus
 
-  def _makeHint(self,layer):
+  def _makeHint(self,horizontal,name,options = None):
+    layer = Glyphs.font.selectedLayers[0]
     hint = GSHint()
     hint.type = TAG
     s = filter(lambda x: type(x) == GSNode, layer.selection)
     s = sorted(s, key=lambda l: l.position.x)
+    if options:
+      hint.options = options
+    hint.name = name
+    hint.horizontal = horizontal
     hint.originNode, hint.targetNode = s[0], s[1]
     if len(s) > 2:
       hint.otherNode1 = s[2]
     if len(s) > 3:
       hint.setOtherNode2_(s[3]) # Work around glyphs bug
-    return hint
+    layer.hints.append(hint)
+    self._rebuild()
 
   def constrainX(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.horizontal = True
-    hint.setName_("h")
-    layer.hints.append(hint)
-    self._rebuild()
+    self._makeHint(layer, True, "h")
 
   def constrainY(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.horizontal = False
-    hint.setName_("v")
-    layer.hints.append(hint)
-    self._rebuild()
+    self._makeHint(layer, False, "v")
 
   def constrainXY(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.setOptions_(DIAGONAL)
-    hint.setName_("d")
-    layer.hints.append(hint)
-    self._rebuild()
+    self._makeHint(layer, False, "d", DIAGONAL)
 
   def constrainHProportion(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.horizontal = True
-    hint.setOptions_(PROPORTIONAL_TRIPLE)
-    hint.setName_("hp")
-    layer.hints.append(hint)
-    self._rebuild()
+    self._makeHint(layer, True, "hp", PROPORTIONAL_TRIPLE)
 
   def constrainVProportion(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.horizontal = False
-    hint.setOptions_(PROPORTIONAL_TRIPLE)
-    hint.setName_("vp")
-    layer.hints.append(hint)
-    self._rebuild()
+    self._makeHint(layer, False, "vp", PROPORTIONAL_TRIPLE)
 
   def constrainHProportion4(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.horizontal = True
-    hint.setOptions_(PROPORTIONAL_QUAD)
-    hint.setName_("hp")
-    layer.hints.append(hint)
-    self._rebuild()
-
+    self._makeHint(layer, True, "hp", PROPORTIONAL_QUAD)
 
   def constrainVProportion4(self, sender):
-    layer = Glyphs.font.selectedLayers[0]
-    hint = self._makeHint(layer)
-    hint.horizontal = False
-    hint.setOptions_(PROPORTIONAL_QUAD)
-    hint.setName_("vp")
-    layer.hints.append(hint)
-    self._rebuild()
+    self._makeHint(layer, False, "vp", PROPORTIONAL_QUAD)
 
   def update(self):
     try:
