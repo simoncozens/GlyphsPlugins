@@ -148,15 +148,28 @@ class GSCurveSegment(GSLineSegment):
     s2_x = p3.x - p2.x
     s2_y = p3.y - p2.y
 
-    s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / (-s2_x * s1_y + s1_x * s2_y)
-    t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / (-s2_x * s1_y + s1_x * s2_y)
+    d1 = -s2_x * s1_y + s1_x * s2_y
+    d2 = -s2_x * s1_y + s1_x * s2_y
+    if abs(d1) < 0.1 or abs(d2) < 0.1:
+      return None
+    s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / d1
+    t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / d2
     return NSMakePoint(p0.x + (t * s1_x), p0.y + (t * s1_y))
 
   @property
   def curvature_percentages(self):
     p = self.tunni_point
-    return (_ptDist(self.start,self.handle1) / _ptDist(self.start, p),
-      _ptDist(self.handle2,self.end) / _ptDist(self.end, p))
+    if not p:
+      return (None, None)
+    if abs(_ptDist(self.start, p)) < 0.1:
+      p1 = None
+    else:
+      p1 = _ptDist(self.start,self.handle1) / _ptDist(self.start, p)
+    if abs(_ptDist(self.end, p)) < 0.1:
+      p2 = None
+    else:
+      p2 = _ptDist(self.handle2,self.end) / _ptDist(self.end, p)
+    return (p1,p2)
 
   def __len__(self):
     return 4

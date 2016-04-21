@@ -57,22 +57,25 @@ class TunniLines ( NSObject, GlyphsReporterProtocol ):
       for p in Layer.paths:
         for s in p.segments:
           if len(s) == 4 and currentZoom > 1.0:
-            bez = NSBezierPath.bezierPath()
-            bez.setLineWidth_(0)
-            bez.appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_(s.tunni_point, self.getHandleSize() / (2*self.getScale()),0,359)
-            bez.stroke()
-            bez.closePath()
+            if s.tunni_point:
+              bez = NSBezierPath.bezierPath()
+              bez.setLineWidth_(0)
+              bez.appendBezierPathWithArcWithCenter_radius_startAngle_endAngle_(s.tunni_point, self.getHandleSize() / (2*self.getScale()),0,359)
+              bez.stroke()
+              bez.closePath()
 
-            bez.setLineDash_count_phase_([1.0,1.0], 2,0)
-            bez.moveToPoint_(s.handle1)
-            bez.lineToPoint_(s.handle2)
-            bez.stroke()
+              bez.setLineDash_count_phase_([1.0,1.0], 2,0)
+              bez.moveToPoint_(s.handle1)
+              bez.lineToPoint_(s.handle2)
+              bez.stroke()
 
             px, py = s.curvature_percentages
-            displayText = NSAttributedString.alloc().initWithString_attributes_( '%0.1f%%' % (100*px), fontAttributes )
-            glyphEditView.drawText_atPoint_alignment_( displayText, _halfway(s.start, s.handle1), 4 )
-            displayText = NSAttributedString.alloc().initWithString_attributes_( '%0.1f%%' % (100*py), fontAttributes )
-            glyphEditView.drawText_atPoint_alignment_( displayText, _halfway(s.handle2, s.end), 4 )
+            if px:
+              displayText = NSAttributedString.alloc().initWithString_attributes_( '%0.1f%%' % (100*px), fontAttributes )
+              glyphEditView.drawText_atPoint_alignment_( displayText, _halfway(s.start, s.handle1), 4 )
+            if py:
+              displayText = NSAttributedString.alloc().initWithString_attributes_( '%0.1f%%' % (100*py), fontAttributes )
+              glyphEditView.drawText_atPoint_alignment_( displayText, _halfway(s.handle2, s.end), 4 )
 
 
     except Exception as e:
