@@ -11,12 +11,11 @@
 #
 ###########################################################################################################
 
-
+from GlyphsApp import *
 from GlyphsApp.plugins import *
 from TTSolver import TTSolver, DIAGONAL, PROPORTIONAL_TRIPLE, PROPORTIONAL_QUAD
 import sys
 import traceback
-from GlyphsApp import TAG
 from singleConstraintViewController import SingleConstraintViewController
 
 GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
@@ -53,9 +52,9 @@ class Springs(SelectTool):
       return True # Pass through other people's hints
     if not t.originNode or not t.targetNode:
       return False
-    if t.options() == PROPORTIONAL_TRIPLE and not t.otherNode1:
+    if t.options == PROPORTIONAL_TRIPLE and not t.otherNode1:
       return False
-    if t.options() == PROPORTIONAL_QUAD and (not t.otherNode1 or not t.valueForKey_("otherNode2")):
+    if t.options == PROPORTIONAL_QUAD and (not t.otherNode1 or not t.valueForKey_("otherNode2")):
       return False
     return True
 
@@ -72,14 +71,14 @@ class Springs(SelectTool):
         bez = NSBezierPath.bezierPath()
         bez.setLineWidth_(2.0)
         bez.moveToPoint_(t.originNode.position)
-        if t.options() == DIAGONAL:
+        if t.options == DIAGONAL:
           NSColor.greenColor().set()
           bez.lineToPoint_(t.targetNode.position)
-        elif t.options() == PROPORTIONAL_TRIPLE:
+        elif t.options == PROPORTIONAL_TRIPLE:
           NSColor.brownColor().set()
           bez.lineToPoint_(t.targetNode.position)
           bez.lineToPoint_(t.otherNode1.position)
-        elif t.options() == PROPORTIONAL_QUAD:
+        elif t.options == PROPORTIONAL_QUAD:
           on2 = t.valueForKey_("otherNode2") # Glyphs bug
           NSColor.yellowColor().set()
           bez.curveToPoint_controlPoint1_controlPoint2_(on2.position, t.targetNode.position, t.otherNode1.position)
